@@ -16,4 +16,8 @@ Dictionary.hs provides a function that takes a Text object and returns a represe
 
 PoetryRules.hs provides a function to determine if an object of type [Syllable] fits a data structure representing the form of a poem. However, this is not finished yet; only a method to test a list of Syllables (which would normally be provided by the function in Dictionary.hs) has been implemented.
 
+<<<<<<< HEAD
 The function to actually generate metrically sound code is not yet begun. I am anticipating that this will be the hardest part.
+=======
+The function to actually generate metrically sound code is not yet begun. I am anticipating that this will be the hardest part.
+>>>>>>> 604042d0a95771f656b0f8f6a09ffa35d7078406
