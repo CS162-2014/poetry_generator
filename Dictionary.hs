@@ -29,10 +29,12 @@
 
 module Dictionary ( SDict
                   , makeSDict 
-                  , wordToSyllables ) where
+                  , wordToSyllables 
+                  , testMakeSDict ) where
 
 import qualified Data.Map as Map
 import qualified Data.Text as Text
+import Safe as Safe
 import qualified Data.List as List
 
 import Phonetic
@@ -45,7 +47,7 @@ phonesToSyllables :: [Phoneme] -> [Syllable]
 phonesToSyllables ps = (Syllable
                        (leadingConsonants ++ phonemes (head rest))
                        (stress (head rest))) : 
-                       (tail rest)
+                       (Safe.tailSafe rest)
   where
     (leadingConsonants, rest') = span (flip elem consonants) ps
     rest = phonesToSyllablesAux rest'
@@ -76,3 +78,10 @@ makeSDict dictText = makeSDictAux Map.empty (Text.lines dictText)
 
 wordToSyllables :: Text.Text -> SDict -> Maybe [Syllable]
 wordToSyllables = Map.lookup
+
+testMakeSDict :: IO Int
+testMakeSDict = do
+  dict <- fmap (makeSDict . Text.pack) (readFile "cmudict.0.7a")
+  let x = Map.toList dict
+  let n = (filter ((>2). length . snd) x)
+  return $ length n
