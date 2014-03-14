@@ -1,3 +1,5 @@
+{-# LANGUAGE OverloadedStrings, RebindableSyntax #-}
+
 {- This module provides some tools for calculating n-gram frequency and
 making a probability distribution for an n-gram on what word will follow,
 given a corpus of text.
@@ -11,10 +13,10 @@ Credit to Izaak Meckler for helping me figure out IO. -}
 
 module NGrams where
 
+import Prelude
 import Data.Map ( (!) )
 import qualified Data.Map as Map
-import Data.Text (pack)
-import qualified Data.Text as Text
+import qualified Data.Text as T
 import Data.Maybe
 import Data.Char
 import System.Random
@@ -24,10 +26,14 @@ import Control.Monad.IO.Class
 
 import Phonetic
 
-type RSStateT = StateT (StdGen, [Text.Text])
+ifThenElse :: Bool -> a -> a -> a
+ifThenElse True a _ = a
+ifThenElse False _ b = b
+
+type RSStateT = StateT (StdGen, [T.Text])
 -- I'll be passing around a StdGen and the last k words.
 
-type NextMap = Map.Map [Text.Text] [Text.Text]
+type NextMap = Map.Map [T.Text] [T.Text]
 -- Type synonym for Map from n-gram to list of words that can follow or
 -- the end of a sentence. This is the core data structure that the
 -- program uses to generate the next word.
@@ -38,7 +44,7 @@ stressW :: Word -> [Stress]
 -- List of stresses for a word
 stressW = map stress
 
-runRand :: NextMap -> RSStateT IO [Text.Text]
+runRand :: NextMap -> RSStateT IO [T.Text]
 -- Produces a new word from NextMap and (gen, last k words)
 -- (hidden in state)
 runRand nm = do
@@ -48,27 +54,29 @@ runRand nm = do
   put (newGen, (tail ngram) ++ newWord)
   return newWord
  
-tokens :: Text.Text -> [Text.Text]
--- Separates text using Text.Text.words and keeps everything
+tokens :: T.Text -> [T.Text]
+-- Separates text using T.T.words and keeps everything
 -- with at least one alphabetic character.
-tokens = (filter ((/= Text.empty) . Text.filter isAlpha)) . Text.words
+tokens = (filter ((/= T.empty) . T.filter isAlpha)) . T.words
 
-makeNextMap :: Int -> Text.Text -> NextMap
+makeNextMap :: Int -> T.Text -> NextMap
 -- Given a body of text and the number of words considered
 -- when choosing the next word, makes a NextMap.
 makeNextMap k text = cartographer Map.empty 
                  (map (splitAt k) -- list of tuples ([k-list], [1-list])
                  (filter ((==(k+1)) . length) (listify (k+1) master_list)))
   where
-    -- master_list :: [Text.Text]
-    master_list =  (tokens text) ++ [Text.empty]
-    -- cartographer :: NextMap -> [([Text.Text], [Text.Text])] -> NextMap
+    -- master_list :: [T.Text]
+    master_list =  (tokens text) ++ [T.empty]
+    -- cartographer :: NextMap -> [([T.Text], [T.Text])] -> NextMap
     cartographer target_map tuple_list = case tuple_list of
-      (key,word):_ -> if (Map.member key target_map)
-                      then cartographer (Map.adjust (word ++) key target_map)
-                           (tail tuple_list)
-                      else cartographer (Map.insert key word target_map)
-                           (tail tuple_list)
+      (key,word):_ ->  
+        if (Map.member key target_map)
+          then (cartographer (Map.adjust (word ++) key target_map)
+          (tail tuple_list))
+        else (
+            cartographer (Map.insert key word target_map)
+                           (tail tuple_list))
       [] -> target_map
 
 initiate :: NextMap -> RSStateT IO ()
@@ -87,10 +95,10 @@ listify :: Int -> [a] -> [[a]]
 listify _ [] = []
 listify k list@(a:b) = (take k list) : (listify k b)
 
-test :: String -> RSStateT IO Text.Text
+test :: String -> RSStateT IO T.Text
 test file = do
   sonnets <- liftIO $ readFile file
-  let myMap = makeNextMap 2 $ pack sonnets
+  let myMap = makeNextMap 2 $ T.pack sonnets
   initiate myMap
   prelim <- replicateM 100 (runRand myMap)
-  return $ Text.intercalate (pack " ") $ foldr (++) [] prelim
+  return $ T.intercalate " " $ foldr (++) [] prelim

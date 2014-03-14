@@ -1,3 +1,5 @@
+{-# LANGUAGE OverloadedStrings, RebindableSyntax #-}
+
 -- Module for making dictionary and turning pronuciations from
 -- the CMU pronunciation dictionary into syllables.
 
@@ -32,14 +34,15 @@ module Dictionary ( SDict
                   , wordToSyllables 
                   , testMakeSDict ) where
 
+import Prelude
+import Safe
 import qualified Data.Map as Map
-import qualified Data.Text as Text
-import Safe as Safe
+import qualified Data.Text as T
 import qualified Data.List as List
 
 import Phonetic
 
-type SDict = Map.Map Text.Text [Syllable]
+type SDict = Map.Map T.Text [Syllable]
 
 phonesToSyllables :: [Phoneme] -> [Syllable]
 -- Turns list of phonemes into list of Syllables. Explained in
@@ -59,29 +62,29 @@ phonesToSyllablesAux ps@(_:_) =
   
   where ([vowel], rest') = splitAt 1 ps
         (consonantList, rest) = span (flip elem consonants) rest'
-        stressT v = case (Text.last v) of 
+        stressT v = case (T.last v) of 
           '1' -> Str
           '0' -> Uns
           '2' -> Sem
-        removeStress = Text.init
+        removeStress = T.init
 phonesToSyllablesAux [] = []
 
--- makeSDict :: Text.Text -> SDict
+-- makeSDict :: T.Text -> SDict
 
-makeSDict :: Text.Text -> SDict
-makeSDict dictText = makeSDictAux Map.empty (Text.lines dictText)
+makeSDict :: T.Text -> SDict
+makeSDict dictText = makeSDictAux Map.empty (T.lines dictText)
   where
-  addLine line = let ([k],v) = (List.splitAt 1 (Text.words line))
+  addLine line = let ([k],v) = (List.splitAt 1 (T.words line))
                  in Map.insert k (phonesToSyllables v)
   makeSDictAux sDict [] = sDict
   makeSDictAux sDict (a:b) = makeSDictAux (addLine a sDict) b
 
-wordToSyllables :: Text.Text -> SDict -> Maybe [Syllable]
+wordToSyllables :: T.Text -> SDict -> Maybe [Syllable]
 wordToSyllables = Map.lookup
 
 testMakeSDict :: IO Int
 testMakeSDict = do
-  dict <- fmap (makeSDict . Text.pack) (readFile "cmudict.0.7a")
+  dict <- fmap (makeSDict . T.pack) (readFile (T.unpack "cmudict.0.7a"))
   let x = Map.toList dict
   let n = (filter ((>2). length . snd) x)
   return $ length n
