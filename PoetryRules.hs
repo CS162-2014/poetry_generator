@@ -19,7 +19,7 @@ import Prelude
 import qualified Data.Map as Map
 import qualified Data.List as List
 import qualified Data.Text as T
-import qualified Data.IntMap.Lazy as IntMap
+-- import qualified Data.IntMap.Lazy as IntMap
 
 import Phonetic
 import NGrams
@@ -35,7 +35,7 @@ type LineRule = [[Foot]]
 -- or a dactyl in the first four positions, usually requires a dactyl in
 -- the fifth, and has either a spondee or a trochee at the end.
 type StanzaRule = [(LineRule, Int)]
-type RhymeMap = IntMap.IntMap Syllable
+type RhymeMap = Map.Map Int Syllable
 
 spanPrefix :: ([a] -> Bool) -> [a] -> Maybe ([a],[a])
 rhymeClass :: Syllable -> Syllable
@@ -162,11 +162,9 @@ matchesStanzaRule stanzaRule word = do
          -- , Syllable ["or"] Str
          -- , Syllable ["id"] Str ]
 
-aeneid = "Hello"
-
 -- example of a StanzaRule
--- italianSonnet :: StanzaRule
--- italianSonnet = (zip (replicate 14 (replicate 5 [Iamb]))
---                  [1, 2, 2, 1, 1, 2, 2, 1, 3, 4, 5, 3, 4, 5 ])
+italianSonnet :: StanzaRule
+italianSonnet = (zip (replicate 14 (replicate 5 [Iamb]))
+                 [1, 2, 2, 1, 1, 2, 2, 1, 3, 4, 5, 3, 4, 5 ])
 -- to imitate a rhyme scheme ABBAABBACDECDE with five iambs / line and 14 lines.
 
