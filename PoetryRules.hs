@@ -28,6 +28,8 @@ import Dictionary
 data Foot = Trochee | Iamb | Spondee | Dactyl | Anapest | Unstressed | Stressed
           deriving (Eq)
 
+instance Show Foot where
+  show foot = T.unpack "Foot"
 
 type LineRule = [[Foot]]
 -- Why not [Foot]? Some meters may allow more than one type of foot in a
@@ -168,3 +170,5 @@ italianSonnet = (zip (replicate 14 (replicate 5 [Iamb]))
                  [1, 2, 2, 1, 1, 2, 2, 1, 3, 4, 5, 3, 4, 5 ])
 -- to imitate a rhyme scheme ABBAABBACDECDE with five iambs / line and 14 lines.
 
+basicallyNothing :: StanzaRule
+basicallyNothing = [([[Iamb], [Iamb], [Iamb]], 1)]

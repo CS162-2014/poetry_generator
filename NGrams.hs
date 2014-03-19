@@ -98,7 +98,7 @@ listify k list@(a:b) = (take k list) : (listify k b)
 test :: String -> RSStateT IO T.Text
 test file = do
   sonnets <- liftIO $ readFile file
-  let myMap = makeNextMap 2 $ T.pack sonnets
+  let myMap = makeNextMap 4 $ T.pack sonnets
   initiate myMap
-  prelim <- replicateM 100 (runRand myMap)
+  prelim <- replicateM 200 (runRand myMap)
   return $ T.intercalate " " $ foldr (++) [] prelim
